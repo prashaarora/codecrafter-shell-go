@@ -30,7 +30,7 @@ func main() {
 				if typeOutput == "echo" || typeOutput == "exit" || typeOutput == "type"{
 					fmt.Println(typeOutput + " is a shell builtin")
 				} else {
-					fmt.Println(typeOutput + ": command not found")
+					fmt.Println(typeOutput + ": not found")
 				}
 			default:
 				fmt.Println(command[:len(command)-1] + ": command not found")
