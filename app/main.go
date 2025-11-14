@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
+	"os/exec"
 	"strings"
 )
 
@@ -41,24 +41,10 @@ func main() {
 				if builtins[typeOutput]{
 					fmt.Println(typeOutput + " is a shell builtin")
 				} else {
-					pathVar := os.Getenv("PATH")
-					pathDirs := strings.Split(pathVar, string(os.PathListSeparator))
-					found := false
-					for _, i := range pathDirs {
-						filename := filepath.Join(i, typeOutput)
-						isFileexist := checkFileExists(filename)
-						if isFileexist{
-							fileInfo, err := os.Stat(filename)
-							if err == nil {
-								if fileInfo.Mode().Perm() & 0111 != 0{
-									fmt.Println(typeOutput + " is " + filename)
-									found = true
-									break
-								}
-							}
-						} 
-					}
-					if !found{
+					path, err := exec.LookPath(typeOutput)
+					if err == nil {
+						fmt.Println(typeOutput + " is " + path)
+					} else{
 						fmt.Println(typeOutput + ": not found")
 					}
 				}
