@@ -20,7 +20,7 @@ func main() {
 			os.Exit(1)
 		}
 		switch {
-			case strings.TrimRight(command, "\n") == "exit 0":
+			case strings.HasPrefix(strings.TrimRight(command, "\n"), "exit"):
 				os.Exit(0)
 			case strings.HasPrefix(command, "echo"):
 				output := strings.TrimPrefix(command, "echo")
@@ -50,9 +50,9 @@ func main() {
 				}
 				cmdName := fields[0]
 				argName := fields[1:]
-				cmdPath, err := exec.LookPath(cmdName)
+				_, err := exec.LookPath(cmdName)
 				if err == nil {
-					exeCommand := exec.Command(cmdPath, argName...)
+					exeCommand := exec.Command(cmdName, argName...)
 					exeCommand.Stdout = os.Stdout
 					exeCommand.Stderr = os.Stderr
 					err := exeCommand.Run()
