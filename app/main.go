@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,10 +10,6 @@ import (
 
 var _ = fmt.Fprint
 var _ = os.Stdout
-func checkFileExists(filepath string)bool{
-	_, error := os.Stat(filepath)
-	return !errors.Is(error, os.ErrNotExist)
-}
 func main() {
 	for {
 		fmt.Fprint(os.Stdout, "$ ")
@@ -49,7 +44,24 @@ func main() {
 					}
 				}
 			default:
-				fmt.Println(command[:len(command)-1] + ": command not found")
+				fields := strings.Fields(command)
+				if len(fields) == 0{
+					continue
+				}
+				cmdName := fields[0]
+				argName := fields[1:]
+				cmdPath, err := exec.LookPath(cmdName)
+				if err == nil {
+					exeCommand := exec.Command(cmdPath, argName...)
+					exeCommand.Stdout = os.Stdout
+					exeCommand.Stderr = os.Stderr
+					err := exeCommand.Run()
+					if err != nil{
+						fmt.Println(err)
+					}
+				} else {
+					fmt.Println(cmdName + ": command not found")
+				}
 		}
 	}
 }
