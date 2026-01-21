@@ -68,7 +68,7 @@ func handleType(input []string) {
 		if err == nil {
 			fmt.Println(cmdName + " is " + path)
 		} else {
-			fmt.Fprintln(os.Stderr, cmdName + ": command not found")
+			fmt.Fprintln(os.Stderr, cmdName + ": not found")
 		}
 	}
 
@@ -100,6 +100,6 @@ func handleExternal(input []string) {
 			fmt.Fprintln(os.Stderr, execErr)
 		}
 	} else {
-		fmt.Fprintln(os.Stderr, cmdName + ": command not found")
+		fmt.Fprintln(os.Stderr, cmdName + ": not found")
 	}
 }
