@@ -8,60 +8,83 @@ import (
 	"strings"
 )
 
-var _ = fmt.Fprint
-var _ = os.Stdout
+var builtins = map[string]bool{
+	"exit": true,
+	"echo": true,
+	"type": true,
+	"pwd": true,
+}
+
 func main() {
 	for {
 		fmt.Fprint(os.Stdout, "$ ")
-		//wait for user input
 		command, err := bufio.NewReader(os.Stdin).ReadString('\n')
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Error reading input:", err)
 			os.Exit(1)
 		}
-		switch {
-			case strings.HasPrefix(strings.TrimRight(command, "\n"), "exit"):
-				os.Exit(0)
-			case strings.HasPrefix(command, "echo"):
-				output := strings.TrimPrefix(command, "echo")
-				fmt.Println(strings.TrimSpace(output))
-			case strings.HasPrefix(command, "type"):
-				typeOutput := strings.TrimSpace(strings.TrimPrefix(command, "type"))
-				builtins := map[string]bool{
-					"echo" : true,
-					"exit" : true,
-					"type" : true,
-				}
-
-				if builtins[typeOutput]{
-					fmt.Println(typeOutput + " is a shell builtin")
-				} else {
-					path, err := exec.LookPath(typeOutput)
-					if err == nil {
-						fmt.Println(typeOutput + " is " + path)
-					} else{
-						fmt.Println(typeOutput + ": not found")
-					}
-				}
-			default:
-				fields := strings.Fields(command)
-				if len(fields) == 0{
-					continue
-				}
-				cmdName := fields[0]
-				argName := fields[1:]
-				_, err := exec.LookPath(cmdName)
-				if err == nil {
-					exeCommand := exec.Command(cmdName, argName...)
-					exeCommand.Stdout = os.Stdout
-					exeCommand.Stderr = os.Stderr
-					err := exeCommand.Run()
-					if err != nil{
-						fmt.Println(err)
-					}
-				} else {
-					fmt.Println(cmdName + ": command not found")
-				}
+		input := strings.Fields(command)
+		if len(input) == 0 {
+			continue
 		}
+		cmd := input[0]
+
+		switch cmd {
+		case "exit":
+			handleExit(input)
+		case "echo":
+			handleEcho(input)
+		case "type":
+			handleType(input)
+		default:
+			handleExternal(input)
+
+		}
+	}
+}
+
+func handleExit(input []string) {
+	os.Exit(0)
+}
+
+func handleEcho(input []string) {
+	output := input[1:]
+	fmt.Println(strings.Join(output, " "))
+}
+
+func handleType(input []string) {
+	if len(input) < 2 {
+		fmt.Fprintln(os.Stderr, "type: missing argument")
+		return
+	}
+	cmdName := input[1]
+
+	if builtins[cmdName] {
+		fmt.Println(cmdName + " is a shell builtin")
+	} else {
+		path, err := exec.LookPath(cmdName)
+		if err == nil {
+			fmt.Println(cmdName + " is " + path)
+		} else {
+			fmt.Fprintln(os.Stderr, cmdName + ": command not found")
+		}
+	}
+
+}
+
+func handleExternal(input []string) {
+	cmdName := input[0]
+	args := input[1:]
+	cmdPath, err := exec.LookPath(cmdName)
+	if err == nil {
+		exeCommand := exec.Command(cmdPath, args...)
+		exeCommand.Stdout = os.Stdout
+		exeCommand.Stderr = os.Stderr
+		execErr := exeCommand.Run()
+		if execErr != nil {
+			fmt.Fprintln(os.Stderr, execErr)
+		}
+	} else {
+		fmt.Fprintln(os.Stderr, cmdName + ": command not found")
 	}
 }
