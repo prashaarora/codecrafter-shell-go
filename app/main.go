@@ -90,9 +90,9 @@ func handlePwd(input []string) {
 func handleExternal(input []string) {
 	cmdName := input[0]
 	args := input[1:]
-	cmdPath, err := exec.LookPath(cmdName)
+	_, err := exec.LookPath(cmdName)
 	if err == nil {
-		exeCommand := exec.Command(cmdPath, args...)
+		exeCommand := exec.Command(cmdName, args...)
 		exeCommand.Stdout = os.Stdout
 		exeCommand.Stderr = os.Stderr
 		execErr := exeCommand.Run()
