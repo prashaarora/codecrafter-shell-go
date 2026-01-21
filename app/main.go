@@ -36,6 +36,8 @@ func main() {
 			handleEcho(input)
 		case "type":
 			handleType(input)
+		case "pwd":
+			handlePwd(input)
 		default:
 			handleExternal(input)
 
@@ -70,6 +72,19 @@ func handleType(input []string) {
 		}
 	}
 
+}
+
+func handlePwd(input []string) {
+	if len(input) > 1{
+		fmt.Fprintln(os.Stderr, "pwd: too many arguments")
+		return
+	}
+	path, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
+	fmt.Println(path)
 }
 
 func handleExternal(input []string) {
