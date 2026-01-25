@@ -13,6 +13,7 @@ var builtins = map[string]bool{
 	"echo": true,
 	"type": true,
 	"pwd": true,
+	"cd": true,
 }
 
 func main() {
@@ -38,6 +39,8 @@ func main() {
 			handleType(input)
 		case "pwd":
 			handlePwd(input)
+		case "cd":
+			handleCd(input)
 		default:
 			handleExternal(input)
 
@@ -85,6 +88,23 @@ func handlePwd(input []string) {
 		return
 	}
 	fmt.Println(path)
+}
+
+func handleCd(input []string) {
+	if len(input) > 2 {
+		fmt.Fprintln(os.Stderr, "cd: too many arguments")
+		return
+	}
+
+	if len(input) < 2 {
+		fmt.Fprintln(os.Stderr, "cd: missing argument")
+		return
+	}
+	args := input[1]
+	err := os.Chdir(args)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "cd: " + args +  ": No such file or directory")
+	}
 }
 
 func handleExternal(input []string) {
