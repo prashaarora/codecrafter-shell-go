@@ -101,6 +101,14 @@ func handleCd(input []string) {
 		return
 	}
 	args := input[1]
+	if args == "~" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "cd: HOME not set")
+			return
+		}
+		args = home
+	}
 	err := os.Chdir(args)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "cd: " + args +  ": No such file or directory")
