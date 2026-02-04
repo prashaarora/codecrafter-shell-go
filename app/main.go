@@ -24,7 +24,7 @@ func main() {
 			fmt.Fprintln(os.Stderr, "Error reading input:", err)
 			os.Exit(1)
 		}
-		input := strings.Fields(command)
+		input := parseCommand(command)
 		if len(input) == 0 {
 			continue
 		}
@@ -46,6 +46,37 @@ func main() {
 
 		}
 	}
+}
+
+func parseCommand(cmd string)[]string {
+	var result []string
+	var currentArg strings.Builder
+	inQuote := false
+	for _, c := range cmd {
+		if c == '\'' {
+			inQuote = !inQuote
+			continue
+		}
+		if c == '\n' {
+			continue
+		}
+		if c == ' ' {
+			if inQuote {
+				currentArg.WriteRune(c)
+			} else {
+				if currentArg.Len() > 0 {
+					result = append(result, currentArg.String())
+					currentArg.Reset()
+				}
+			} 
+			continue
+		}
+		currentArg.WriteRune(c) 
+	}
+	if currentArg.Len() > 0 {
+		result = append(result, currentArg.String())
+	}
+	return result
 }
 
 func handleExit(input []string) {
