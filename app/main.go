@@ -51,17 +51,24 @@ func main() {
 func parseCommand(cmd string)[]string {
 	var result []string
 	var currentArg strings.Builder
-	inQuote := false
+	activeQuote := rune(0)
 	for _, c := range cmd {
 		if c == '\'' || c == '"' {
-			inQuote = !inQuote
+			switch activeQuote {
+			case 0:
+				activeQuote = c
+			case c:
+				activeQuote = 0
+			default:
+				currentArg.WriteRune(c)
+			}
 			continue
 		}
 		if c == '\n' {
 			continue
 		}
 		if c == ' ' {
-			if inQuote {
+			if activeQuote != 0 {
 				currentArg.WriteRune(c)
 			} else {
 				if currentArg.Len() > 0 {
@@ -162,4 +169,3 @@ func handleExternal(input []string) {
 		fmt.Fprintln(os.Stderr, cmdName + ": not found")
 	}
 }
-
