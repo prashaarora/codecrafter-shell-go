@@ -53,7 +53,7 @@ func parseCommand(cmd string)[]string {
 	var currentArg strings.Builder
 	inQuote := false
 	for _, c := range cmd {
-		if c == '\'' {
+		if c == '\'' || c == '"' {
 			inQuote = !inQuote
 			continue
 		}
