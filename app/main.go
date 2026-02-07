@@ -54,17 +54,17 @@ func parseCommand(cmd string) []string {
 	activeQuote := rune(0)
 	inEscape := false
 	for _, c := range cmd {
+		if inEscape {
+			currentArg.WriteRune(c)
+			inEscape = false
+			continue
+		}
 		if c == '\\' {
 			if activeQuote == 0 {
 				inEscape = true
 			    continue
 			}
 
-		}
-		if inEscape {
-			currentArg.WriteRune(c)
-			inEscape = false
-			continue
 		}
 		if c == '\'' || c == '"' {
 			switch activeQuote {
