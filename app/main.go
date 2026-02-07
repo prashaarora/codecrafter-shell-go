@@ -162,3 +162,4 @@ func handleExternal(input []string) {
 		fmt.Fprintln(os.Stderr, cmdName + ": not found")
 	}
 }
+
