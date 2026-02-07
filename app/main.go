@@ -12,8 +12,8 @@ var builtins = map[string]bool{
 	"exit": true,
 	"echo": true,
 	"type": true,
-	"pwd": true,
-	"cd": true,
+	"pwd":  true,
+	"cd":   true,
 }
 
 func main() {
@@ -48,10 +48,11 @@ func main() {
 	}
 }
 
-func parseCommand(cmd string)[]string {
+func parseCommand(cmd string) []string {
 	var result []string
 	var currentArg strings.Builder
 	activeQuote := rune(0)
+	inEscape := false
 	for _, c := range cmd {
 		if c == '\'' || c == '"' {
 			switch activeQuote {
@@ -62,6 +63,18 @@ func parseCommand(cmd string)[]string {
 			default:
 				currentArg.WriteRune(c)
 			}
+			continue
+		}
+		if c == '\\' {
+			if activeQuote == 0 {
+				inEscape = true
+			    continue
+			}
+
+		}
+		if inEscape {
+			currentArg.WriteRune(c)
+			inEscape = false
 			continue
 		}
 		if c == '\n' {
@@ -75,10 +88,10 @@ func parseCommand(cmd string)[]string {
 					result = append(result, currentArg.String())
 					currentArg.Reset()
 				}
-			} 
+			}
 			continue
 		}
-		currentArg.WriteRune(c) 
+		currentArg.WriteRune(c)
 	}
 	if currentArg.Len() > 0 {
 		result = append(result, currentArg.String())
@@ -109,14 +122,14 @@ func handleType(input []string) {
 		if err == nil {
 			fmt.Println(cmdName + " is " + path)
 		} else {
-			fmt.Fprintln(os.Stderr, cmdName + ": not found")
+			fmt.Fprintln(os.Stderr, cmdName+": not found")
 		}
 	}
 
 }
 
 func handlePwd(input []string) {
-	if len(input) > 1{
+	if len(input) > 1 {
 		fmt.Fprintln(os.Stderr, "pwd: too many arguments")
 		return
 	}
@@ -149,7 +162,7 @@ func handleCd(input []string) {
 	}
 	err := os.Chdir(args)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "cd: " + args +  ": No such file or directory")
+		fmt.Fprintln(os.Stderr, "cd: "+args+": No such file or directory")
 	}
 }
 
@@ -166,6 +179,6 @@ func handleExternal(input []string) {
 			fmt.Fprintln(os.Stderr, execErr)
 		}
 	} else {
-		fmt.Fprintln(os.Stderr, cmdName + ": not found")
+		fmt.Fprintln(os.Stderr, cmdName+": not found")
 	}
 }
