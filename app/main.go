@@ -53,16 +53,33 @@ func parseCommand(cmd string) []string {
 	var currentArg strings.Builder
 	activeQuote := rune(0)
 	inEscape := false
+	inDoubleQuoteEscape := false
 	for _, c := range cmd {
 		if inEscape {
 			currentArg.WriteRune(c)
 			inEscape = false
 			continue
 		}
+		if inDoubleQuoteEscape {
+			if c == '"' || c == '\\' {
+				currentArg.WriteRune(c)
+				inDoubleQuoteEscape = false
+				continue
+			} else {
+				currentArg.WriteRune('\\')
+				currentArg.WriteRune(c)
+				inDoubleQuoteEscape = false
+				continue
+			}
+		}
 		if c == '\\' {
 			if activeQuote == 0 {
 				inEscape = true
 			    continue
+			}
+			if activeQuote == '"' {
+				inDoubleQuoteEscape = true
+				continue
 			}
 
 		}
