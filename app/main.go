@@ -75,8 +75,23 @@ func handleExit(input []string) {
 }
 
 func handleEcho(input []string) {
-	output := input[1:]
-	fmt.Println(strings.Join(output, " "))
+	args := input[1:]
+	cleanArgs, filename, hasRedirect := handleRedirection(args)
+	
+	output := strings.Join(cleanArgs, " ")
+	
+	if hasRedirect {
+		outputFile, err := os.Create(filename)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, msgErrorFileCreation, err)
+			return
+		}
+		defer outputFile.Close()
+		
+		fmt.Fprintln(outputFile, output) 
+	} else {
+		fmt.Println(output)
+	}
 }
 
 func handleType(input []string) {
