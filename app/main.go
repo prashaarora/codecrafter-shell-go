@@ -166,10 +166,8 @@ func handleExternal(input []string) {
 			exeCommand.Stdout = os.Stdout
 		}
 		exeCommand.Stderr = os.Stderr
-		execErr := exeCommand.Run()
-		if execErr != nil {
-			fmt.Fprintln(os.Stderr, execErr)
-		}
+		exeCommand.Run()
+
 	} else {
 		fmt.Fprintln(os.Stderr, cmdName+msgNotFound)
 	}
