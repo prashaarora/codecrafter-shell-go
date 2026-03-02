@@ -88,16 +88,24 @@ func handleEcho(input []string) {
 	output := strings.Join(redirectInfo.CleanArgs, " ")
 
 	if redirectInfo.HasStdout {
-		outputFile, err := os.Create(redirectInfo.StdoutFile)
+		stdoutFile, err := os.Create(redirectInfo.StdoutFile)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, msgErrorFileCreation, err)
 			return
 		}
-		defer outputFile.Close()
+		defer stdoutFile.Close()
 
-		fmt.Fprintln(outputFile, output)
+		fmt.Fprintln(stdoutFile, output)
 	} else {
 		fmt.Println(output)
+	}
+	if redirectInfo.HasStderr {
+		stderrFile, err := os.Create(redirectInfo.StderrFile)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, msgErrorFileCreation, err)
+			return
+		}
+		defer stderrFile.Close()
 	}
 }
 
