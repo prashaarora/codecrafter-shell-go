@@ -206,7 +206,7 @@ func handleRedirection(args []string) RedirectInfo {
 	hasStdout := false
 	hasStderr := false
 
-	if stdoutRedirectIndex != -1 && stderrRedirectIndex+1 < len(args) {
+	if stdoutRedirectIndex != -1 && stdoutRedirectIndex+1 < len(args) {
 		stdoutFile = args[stdoutRedirectIndex+1]
 		hasStdout = true
 	}
@@ -217,7 +217,7 @@ func handleRedirection(args []string) RedirectInfo {
 
 	cleanArgs := make([]string, 0)
 	for i, arg := range args {
-		if i == stderrRedirectIndex || i == stderrRedirectIndex+1 {
+		if i == stdoutRedirectIndex || i == stdoutRedirectIndex+1 {
 			continue
 		}
 		if i == stderrRedirectIndex || i == stderrRedirectIndex+1 {
