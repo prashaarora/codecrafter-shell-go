@@ -18,6 +18,14 @@ var builtins = map[string]bool{
 	"cd":   true,
 }
 
+type RedirectInfo struct {
+	CleanArgs  []string
+	StdoutFile string
+	StderrFile string
+	HasStdout  bool
+	HasStderr  bool
+}
+
 const (
 	msgNotFound          = ": not found"
 	msgNoSuchFile        = ": No such file or directory"
@@ -35,7 +43,7 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Fprint(os.Stdout, "$ ")
-		command, err := reader.ReadString('\n') 
+		command, err := reader.ReadString('\n')
 		if err != nil {
 			fmt.Fprintln(os.Stderr, msgErrorReading, err)
 			os.Exit(1)
@@ -69,26 +77,25 @@ func parseCommand(cmd string) []string {
 	return p.Parse(cmd)
 }
 
-
 func handleExit(input []string) {
 	os.Exit(0)
 }
 
 func handleEcho(input []string) {
 	args := input[1:]
-	cleanArgs, filename, hasRedirect := handleRedirection(args)
-	
-	output := strings.Join(cleanArgs, " ")
-	
-	if hasRedirect {
-		outputFile, err := os.Create(filename)
+	redirectInfo := handleRedirection(args)
+
+	output := strings.Join(redirectInfo.CleanArgs, " ")
+
+	if redirectInfo.HasStdout {
+		outputFile, err := os.Create(redirectInfo.StdoutFile)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, msgErrorFileCreation, err)
 			return
 		}
 		defer outputFile.Close()
-		
-		fmt.Fprintln(outputFile, output) 
+
+		fmt.Fprintln(outputFile, output)
 	} else {
 		fmt.Println(output)
 	}
@@ -129,7 +136,7 @@ func handlePwd(input []string) {
 
 func handleCd(input []string) {
 	if len(input) != 2 {
-		fmt.Fprintln(os.Stderr,"cd"+msgExpect1Arg)
+		fmt.Fprintln(os.Stderr, "cd"+msgExpect1Arg)
 		return
 	}
 	args := input[1]
@@ -150,22 +157,32 @@ func handleCd(input []string) {
 func handleExternal(input []string) {
 	cmdName := input[0]
 	args := input[1:]
-	cleanArgs, filename, hasRedirect := handleRedirection(args)
+	redirectInfo := handleRedirection(args)
 	_, err := exec.LookPath(cmdName)
 	if err == nil {
-		exeCommand := exec.Command(cmdName, cleanArgs...)
-		if hasRedirect {
-			outputFile, fileErr := os.Create(filename)
+		exeCommand := exec.Command(cmdName, redirectInfo.CleanArgs...)
+		if redirectInfo.HasStdout {
+			stdoutFile, fileErr := os.Create(redirectInfo.StdoutFile)
 			if fileErr != nil {
-				fmt.Fprintln(os.Stderr, msgErrorFileCreation+filename, fileErr)
+				fmt.Fprintln(os.Stderr, msgErrorFileCreation+redirectInfo.StdoutFile, fileErr)
 				return
 			}
-			defer outputFile.Close()
-			exeCommand.Stdout = outputFile
+			defer stdoutFile.Close()
+			exeCommand.Stdout = stdoutFile
 		} else {
 			exeCommand.Stdout = os.Stdout
 		}
-		exeCommand.Stderr = os.Stderr
+		if redirectInfo.HasStderr {
+			stderrFile, fileErr := os.Create(redirectInfo.StderrFile)
+			if fileErr != nil {
+				fmt.Fprintln(os.Stderr, msgErrorFileCreation+redirectInfo.StderrFile, fileErr)
+				return
+			}
+			defer stderrFile.Close()
+			exeCommand.Stderr = stderrFile
+		} else {
+			exeCommand.Stderr = os.Stderr
+		}
 		exeCommand.Run()
 
 	} else {
@@ -173,23 +190,46 @@ func handleExternal(input []string) {
 	}
 }
 
-func handleRedirection(args []string) ([]string, string, bool) { 
-	redirectIndex := -1
-	for i, arg := range args{
+func handleRedirection(args []string) RedirectInfo {
+	stdoutRedirectIndex := -1
+    stderrRedirectIndex := -1
+	for i, arg := range args {
 		if arg == ">" || arg == "1>" {
-			redirectIndex = i
-			break
+			stdoutRedirectIndex = i
+		}
+		if arg == "2>" {
+			stderrRedirectIndex = i
 		}
 	}
-	if redirectIndex == -1 {
-		return args, "", false
+	stdoutFile := ""
+	stderrFile := ""
+	hasStdout := false
+	hasStderr := false
+
+	if stdoutRedirectIndex != -1 && stderrRedirectIndex+1 < len(args) {
+		stdoutFile = args[stdoutRedirectIndex+1]
+		hasStdout = true
+	}
+	if stderrRedirectIndex != -1 && stderrRedirectIndex+1 < len(args) {
+		stderrFile = args[stderrRedirectIndex+1]
+		hasStderr = true
 	}
 
-	if redirectIndex+1 >= len(args) {
-		return args, "", false
+	cleanArgs := make([]string, 0)
+	for i, arg := range args {
+		if i == stderrRedirectIndex || i == stderrRedirectIndex+1 {
+			continue
+		}
+		if i == stderrRedirectIndex || i == stderrRedirectIndex+1 {
+			continue
+		}
+		cleanArgs = append(cleanArgs, arg)
 	}
-
-	cmdArgs := args[:redirectIndex]
-	filename := args[redirectIndex+1]
-	return cmdArgs, filename, true
+	return RedirectInfo{
+		CleanArgs:  cleanArgs,
+		StdoutFile: stdoutFile,
+		StderrFile: stderrFile,
+		HasStdout:  hasStdout,
+		HasStderr:  hasStderr,
+	}
 }
