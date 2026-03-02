@@ -192,7 +192,8 @@ func handleExternal(input []string) {
 
 func handleRedirection(args []string) RedirectInfo {
 	stdoutRedirectIndex := -1
-    stderrRedirectIndex := -1
+	stderrRedirectIndex := -1
+	
 	for i, arg := range args {
 		if arg == ">" || arg == "1>" {
 			stdoutRedirectIndex = i
@@ -201,6 +202,7 @@ func handleRedirection(args []string) RedirectInfo {
 			stderrRedirectIndex = i
 		}
 	}
+	
 	stdoutFile := ""
 	stderrFile := ""
 	hasStdout := false
@@ -210,21 +212,23 @@ func handleRedirection(args []string) RedirectInfo {
 		stdoutFile = args[stdoutRedirectIndex+1]
 		hasStdout = true
 	}
+	
 	if stderrRedirectIndex != -1 && stderrRedirectIndex+1 < len(args) {
 		stderrFile = args[stderrRedirectIndex+1]
 		hasStderr = true
 	}
 
 	cleanArgs := make([]string, 0)
-	for i, arg := range args {
+	for i, _ := range args {
 		if i == stdoutRedirectIndex || i == stdoutRedirectIndex+1 {
 			continue
 		}
 		if i == stderrRedirectIndex || i == stderrRedirectIndex+1 {
 			continue
 		}
-		cleanArgs = append(cleanArgs, arg)
+		cleanArgs = append(cleanArgs, args[i])
 	}
+	
 	return RedirectInfo{
 		CleanArgs:  cleanArgs,
 		StdoutFile: stdoutFile,
