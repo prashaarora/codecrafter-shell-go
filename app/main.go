@@ -173,7 +173,7 @@ func handleExternal(input []string) {
 			exeCommand.Stdout = os.Stdout
 		}
 		if redirectInfo.HasStderr {
-			stderrFile, fileErr := os.Create(redirectInfo.StderrFile)
+			stderrFile, fileErr := os.Create(redirectInfo.StderrFile)		
 			if fileErr != nil {
 				fmt.Fprintln(os.Stderr, msgErrorFileCreation+redirectInfo.StderrFile, fileErr)
 				return
@@ -219,14 +219,16 @@ func handleRedirection(args []string) RedirectInfo {
 	}
 
 	cleanArgs := make([]string, 0)
-	for i, _ := range args {
-		if i == stdoutRedirectIndex || i == stdoutRedirectIndex+1 {
-			continue
-		}
-		if i == stderrRedirectIndex || i == stderrRedirectIndex+1 {
-			continue
-		}
-		cleanArgs = append(cleanArgs, args[i])
+	for i, arg := range args {
+	   if stdoutRedirectIndex != -1 && (i == stdoutRedirectIndex || i == stdoutRedirectIndex+1) {
+	       continue
+	   }
+	   
+	   if stderrRedirectIndex != -1 && (i == stderrRedirectIndex || i == stderrRedirectIndex+1) {
+	       continue
+	   }
+	   
+	   cleanArgs = append(cleanArgs, arg)
 	}
 	
 	return RedirectInfo{
