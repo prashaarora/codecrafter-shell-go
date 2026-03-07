@@ -2,15 +2,14 @@ package parser
 
 import (
 	"strings"
-
 )
 
 type CommandParser struct {
-	result       		 []string
-	currentArg   		 strings.Builder
-	activeQuote  		 rune
-	inEscape     		 bool
-	inDoubleQuoteEscape  bool
+	result              []string
+	currentArg          strings.Builder
+	activeQuote         rune
+	inEscape            bool
+	inDoubleQuoteEscape bool
 }
 
 func NewCommandParser() *CommandParser {
@@ -21,6 +20,12 @@ func NewCommandParser() *CommandParser {
 		inDoubleQuoteEscape: false,
 	}
 }
+
+func ParseCommand(cmd string) []string {
+	p := NewCommandParser()
+	return p.Parse(cmd)
+}
+
 func (p *CommandParser) Parse(cmd string) []string {
 	for _, c := range cmd {
 		p.processCharacter(c)
@@ -37,19 +42,19 @@ func (p *CommandParser) processCharacter(c rune) {
 	if p.handleEscapedChar(c) {
 		return
 	}
-	
+
 	if p.handleBackslash(c) {
 		return
 	}
-	
+
 	if p.handleQuote(c) {
 		return
 	}
-	
+
 	if p.handleSpecialChars(c) {
 		return
 	}
-	
+
 	p.currentArg.WriteRune(c)
 }
 
@@ -60,12 +65,12 @@ func (p *CommandParser) handleEscapedChar(c rune) bool {
 		return true
 	}
 	if p.inDoubleQuoteEscape {
-		if c == '"' || c =='\\'{
+		if c == '"' || c == '\\' {
 			p.currentArg.WriteRune(c)
 		} else {
 			p.currentArg.WriteRune('\\')
 			p.currentArg.WriteRune(c)
-		} 
+		}
 		p.inDoubleQuoteEscape = false
 		return true
 	}
@@ -75,12 +80,12 @@ func (p *CommandParser) handleEscapedChar(c rune) bool {
 
 func (p *CommandParser) handleBackslash(c rune) bool {
 	if c != '\\' {
-		return false  
+		return false
 	}
-	
+
 	if p.activeQuote == 0 {
 		p.inEscape = true
-		return  true
+		return true
 	}
 	if p.activeQuote == '"' {
 		p.inDoubleQuoteEscape = true
@@ -90,26 +95,25 @@ func (p *CommandParser) handleBackslash(c rune) bool {
 }
 
 func (p *CommandParser) handleQuote(c rune) bool {
-	if c == '\'' || c == '"'{
+	if c == '\'' || c == '"' {
 		switch p.activeQuote {
 		case 0:
 			p.activeQuote = c
 		case c:
 			p.activeQuote = 0
 		default:
-			p.currentArg.WriteRune(c)   
+			p.currentArg.WriteRune(c)
 		}
 		return true
 	}
 	return false
 }
 
-
 func (p *CommandParser) handleSpecialChars(c rune) bool {
 	if c == '\n' {
 		return true
 	}
-	if c == ' '{
+	if c == ' ' {
 		if p.activeQuote != 0 {
 			p.currentArg.WriteRune(c)
 		} else {
