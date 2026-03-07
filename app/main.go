@@ -24,6 +24,7 @@ type RedirectInfo struct {
 	StderrFile string
 	HasStdout  bool
 	HasStderr  bool
+	StdOutAppend bool
 }
 
 const (
@@ -88,9 +89,15 @@ func handleEcho(input []string) {
 	output := strings.Join(redirectInfo.CleanArgs, " ")
 
 	if redirectInfo.HasStdout {
-		stdoutFile, err := os.Create(redirectInfo.StdoutFile)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, msgErrorFileCreation, err)
+		var stdoutFile *os.File
+		var fileErr error
+		if redirectInfo.StdOutAppend {
+			stdoutFile, fileErr = openFileinAppendMode(redirectInfo.StdoutFile)
+		} else {
+			stdoutFile, fileErr = createFile(redirectInfo.StdoutFile)
+		}
+		if fileErr != nil {
+			fmt.Fprintln(os.Stderr, msgErrorFileCreation+redirectInfo.StdoutFile, fileErr)
 			return
 		}
 		defer stdoutFile.Close()
@@ -162,6 +169,14 @@ func handleCd(input []string) {
 	}
 }
 
+func openFileinAppendMode(filename string) (*os.File, error) {
+	return os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+}
+
+func createFile(filename string) (*os.File, error) {
+	return os.Create(filename)
+}
+
 func handleExternal(input []string) {
 	cmdName := input[0]
 	args := input[1:]
@@ -170,7 +185,13 @@ func handleExternal(input []string) {
 	if err == nil {
 		exeCommand := exec.Command(cmdName, redirectInfo.CleanArgs...)
 		if redirectInfo.HasStdout {
-			stdoutFile, fileErr := os.Create(redirectInfo.StdoutFile)
+			var stdoutFile *os.File
+			var fileErr error
+			if redirectInfo.StdOutAppend {
+				stdoutFile, fileErr = openFileinAppendMode(redirectInfo.StdoutFile)
+			} else {
+				stdoutFile, fileErr = createFile(redirectInfo.StdoutFile)
+			}
 			if fileErr != nil {
 				fmt.Fprintln(os.Stderr, msgErrorFileCreation+redirectInfo.StdoutFile, fileErr)
 				return
@@ -181,7 +202,7 @@ func handleExternal(input []string) {
 			exeCommand.Stdout = os.Stdout
 		}
 		if redirectInfo.HasStderr {
-			stderrFile, fileErr := os.Create(redirectInfo.StderrFile)		
+			stderrFile, fileErr := createFile(redirectInfo.StderrFile)
 			if fileErr != nil {
 				fmt.Fprintln(os.Stderr, msgErrorFileCreation+redirectInfo.StderrFile, fileErr)
 				return
@@ -192,7 +213,6 @@ func handleExternal(input []string) {
 			exeCommand.Stderr = os.Stderr
 		}
 		exeCommand.Run()
-
 	} else {
 		fmt.Fprintln(os.Stderr, cmdName+msgNotFound)
 	}
@@ -201,12 +221,17 @@ func handleExternal(input []string) {
 func handleRedirection(args []string) RedirectInfo {
 	stdoutRedirectIndex := -1
 	stderrRedirectIndex := -1
+	stdOutAppend := false
 	
 	for i, arg := range args {
-		if arg == ">" || arg == "1>" {
+		switch arg {
+		case ">>", "1>>":
 			stdoutRedirectIndex = i
-		}
-		if arg == "2>" {
+			stdOutAppend = true
+		case ">", "1>":
+			stdoutRedirectIndex = i
+			stdOutAppend = false
+		case "2>":
 			stderrRedirectIndex = i
 		}
 	}
@@ -245,5 +270,6 @@ func handleRedirection(args []string) RedirectInfo {
 		StderrFile: stderrFile,
 		HasStdout:  hasStdout,
 		HasStderr:  hasStderr,
+		StdOutAppend: stdOutAppend,
 	}
 }
