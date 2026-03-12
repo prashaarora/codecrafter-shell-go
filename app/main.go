@@ -1,11 +1,12 @@
 package main
 
 import (
+	"os"
+	"strings"
+
 	"github.com/chzyer/readline"
 	"github.com/codecrafters-io/shell-starter-go/app/handlers"
 	"github.com/codecrafters-io/shell-starter-go/app/parser"
-	"os"
-	"strings"
 )
 
 type Completer struct{}
@@ -51,18 +52,9 @@ func main() {
 		}
 		cmd := input[0]
 
-		switch cmd {
-		case "exit":
-			handlers.HandleExit(input)
-		case "echo":
-			handlers.HandleEcho(input)
-		case "type":
-			handlers.HandleType(input)
-		case "pwd":
-			handlers.HandlePwd(input)
-		case "cd":
-			handlers.HandleCd(input)
-		default:
+		if h, ok := handlers.Registry[cmd]; ok {
+			h.Execute(input)
+		} else {
 			handlers.HandleExternal(input)
 		}
 	}
