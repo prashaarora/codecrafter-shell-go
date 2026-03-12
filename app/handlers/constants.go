@@ -8,7 +8,7 @@ const (
 	MsgIsBuiltin         = " is a shell builtin"
 	MsgIs                = " is "
 	MsgHomeNotSet        = "cd: HOME not set"
-    MsgErrorFileCreation = "error creating file: "
-	MsgExpect1Arg        = ": expect 1 argument atleast"
+	MsgErrorFileCreation = "error creating file: "
+	MsgExpect1Arg        = ": expect 1 argument at least"
 	MsgErrorReading      = "Error reading input:"
 )

@@ -13,33 +13,19 @@ func HandleEcho(input []string) {
 	output := strings.Join(redirectInfo.CleanArgs, " ")
 
 	if redirectInfo.HasStdout {
-		var stdoutFile *os.File
-		var fileErr error
-		if redirectInfo.StdOutAppend {
-			stdoutFile, fileErr = OpenFileinAppendMode(redirectInfo.StdoutFile)
-		} else {
-			stdoutFile, fileErr = CreateFile(redirectInfo.StdoutFile)
-		}
+		stdoutFile, fileErr := OpenOutputFile(redirectInfo.StdoutFile, redirectInfo.StdOutAppend)
 		if fileErr != nil {
 			fmt.Fprintln(os.Stderr, MsgErrorFileCreation+redirectInfo.StdoutFile, fileErr)
 			return
 		}
 		defer stdoutFile.Close()
-
 		fmt.Fprintln(stdoutFile, output)
 	} else {
 		fmt.Println(output)
 	}
 
 	if redirectInfo.HasStderr {
-		var stderrFile *os.File
-		var err error
-		if redirectInfo.StdErrAppend {
-			stderrFile, err = OpenFileinAppendMode(redirectInfo.StderrFile)
-		} else {
-			stderrFile, err = CreateFile(redirectInfo.StderrFile)
-		}
-
+		stderrFile, err := OpenOutputFile(redirectInfo.StderrFile, redirectInfo.StdErrAppend)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, MsgErrorFileCreation+redirectInfo.StderrFile, err)
 			return

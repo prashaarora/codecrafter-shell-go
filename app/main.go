@@ -1,11 +1,11 @@
 package main
 
 import (
-	"os"
-	"strings"
 	"github.com/chzyer/readline"
 	"github.com/codecrafters-io/shell-starter-go/app/handlers"
 	"github.com/codecrafters-io/shell-starter-go/app/parser"
+	"os"
+	"strings"
 )
 
 type Completer struct{}
@@ -16,15 +16,15 @@ func (c *Completer) Do(line []rune, pos int) ([][]rune, int) {
 	if len(words) == 0 {
 		return nil, 0
 	}
-	
+
 	partial := words[len(words)-1]
 	completion := handlers.HandleCompletions(partial)
-	
+
 	if completion != "" {
-		suffix := completion[len(partial):] 
+		suffix := completion[len(partial):]
 		return [][]rune{[]rune(suffix + " ")}, len(partial)
 	}
-	
+
 	return nil, 0
 }
 

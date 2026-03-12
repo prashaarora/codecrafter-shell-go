@@ -6,21 +6,32 @@ import (
 )
 
 func HandleCd(input []string) {
-	if len(input) != 2 {
-		fmt.Fprintln(os.Stderr, "cd"+MsgExpect1Arg)
-		return
-	}
-	args := input[1]
-	if args == "~" {
+	var target string
+
+	switch len(input) {
+	case 1:
 		home, err := os.UserHomeDir()
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "cd"+MsgHomeNotSet)
+			fmt.Fprintln(os.Stderr, MsgHomeNotSet)
 			return
 		}
-		args = home
+		target = home
+	case 2:
+		target = input[1]
+		if target == "~" {
+			home, err := os.UserHomeDir()
+			if err != nil {
+				fmt.Fprintln(os.Stderr, MsgHomeNotSet)
+				return
+			}
+			target = home
+		}
+	default:
+		fmt.Fprintln(os.Stderr, "cd"+MsgTooManyArgs)
+		return
 	}
-	err := os.Chdir(args)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "cd: "+args+MsgNoSuchFile)
+
+	if err := os.Chdir(target); err != nil {
+		fmt.Fprintln(os.Stderr, "cd: "+target+MsgNoSuchFile)
 	}
 }

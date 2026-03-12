@@ -26,7 +26,16 @@ func ParseCommand(cmd string) []string {
 	return p.Parse(cmd)
 }
 
+func (p *CommandParser) reset() {
+	p.result = p.result[:0]
+	p.currentArg.Reset()
+	p.activeQuote = 0
+	p.inEscape = false
+	p.inDoubleQuoteEscape = false
+}
+
 func (p *CommandParser) Parse(cmd string) []string {
+	p.reset()
 	for _, c := range cmd {
 		p.processCharacter(c)
 	}

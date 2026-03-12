@@ -65,7 +65,7 @@ func HandleRedirection(args []string) RedirectInfo {
 		cleanArgs = append(cleanArgs, arg)
 	}
 
-	return RedirectInfo {
+	return RedirectInfo{
 		CleanArgs:    cleanArgs,
 		StdoutFile:   stdoutFile,
 		StderrFile:   stderrFile,
@@ -76,10 +76,17 @@ func HandleRedirection(args []string) RedirectInfo {
 	}
 }
 
-func OpenFileinAppendMode(filename string) (*os.File, error) {
+func OpenFileInAppendMode(filename string) (*os.File, error) {
 	return os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 }
 
 func CreateFile(filename string) (*os.File, error) {
 	return os.Create(filename)
+}
+
+func OpenOutputFile(filename string, appendMode bool) (*os.File, error) {
+	if appendMode {
+		return OpenFileInAppendMode(filename)
+	}
+	return CreateFile(filename)
 }

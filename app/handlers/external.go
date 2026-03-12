@@ -14,13 +14,7 @@ func HandleExternal(input []string) {
 	if err == nil {
 		exeCommand := exec.Command(cmdName, redirectInfo.CleanArgs...)
 		if redirectInfo.HasStdout {
-			var stdoutFile *os.File
-			var fileErr error
-			if redirectInfo.StdOutAppend {
-				stdoutFile, fileErr = OpenFileinAppendMode(redirectInfo.StdoutFile)
-			} else {
-				stdoutFile, fileErr = CreateFile(redirectInfo.StdoutFile)
-			}
+			stdoutFile, fileErr := OpenOutputFile(redirectInfo.StdoutFile, redirectInfo.StdOutAppend)
 			if fileErr != nil {
 				fmt.Fprintln(os.Stderr, MsgErrorFileCreation+redirectInfo.StdoutFile, fileErr)
 				return
@@ -31,13 +25,7 @@ func HandleExternal(input []string) {
 			exeCommand.Stdout = os.Stdout
 		}
 		if redirectInfo.HasStderr {
-			var stderrFile *os.File
-			var fileErr error
-			if redirectInfo.StdErrAppend {
-				stderrFile, fileErr = OpenFileinAppendMode(redirectInfo.StderrFile)
-			} else {
-				stderrFile, fileErr = CreateFile(redirectInfo.StderrFile)
-			}
+			stderrFile, fileErr := OpenOutputFile(redirectInfo.StderrFile, redirectInfo.StdErrAppend)
 			if fileErr != nil {
 				fmt.Fprintln(os.Stderr, MsgErrorFileCreation+redirectInfo.StderrFile, fileErr)
 				return
