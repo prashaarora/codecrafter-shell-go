@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 	"strings"
-
+	"fmt"
 	"github.com/chzyer/readline"
 	"github.com/codecrafters-io/shell-starter-go/app/handlers"
 	"github.com/codecrafters-io/shell-starter-go/app/parser"
@@ -24,6 +24,8 @@ func (c *Completer) Do(line []rune, pos int) ([][]rune, int) {
 	if completion != "" {
 		suffix := completion[len(partial):]
 		return [][]rune{[]rune(suffix + " ")}, len(partial)
+	} else {
+		fmt.Print("\a")
 	}
 
 	return nil, 0
