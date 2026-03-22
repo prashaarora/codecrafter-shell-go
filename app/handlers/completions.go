@@ -5,28 +5,23 @@ import (
 	"strings"
 )
 
-func HandleCompletions(partialString string) string {
+func HandleAllCompletions(partialString string) []string {
 	seen := make(map[string]bool)
 	var completions []string
-
+	
 	for cmd := range Builtins {
 		if strings.HasPrefix(cmd, partialString) {
 			seen[cmd] = true
 			completions = append(completions, cmd)
 		}
 	}
-
 	for _, name := range handlePathCompletions(partialString) {
 		if !seen[name] {
 			seen[name] = true
 			completions = append(completions, name)
 		}
 	}
-
-	if len(completions) == 1 {
-		return completions[0]
-	}
-	return ""
+	return completions
 }
 
 func getPathDirs() []string {
