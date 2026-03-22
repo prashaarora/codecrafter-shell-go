@@ -11,6 +11,10 @@ import (
 	"github.com/codecrafters-io/shell-starter-go/app/parser"
 )
 
+const (
+	shellPrompt = "$ "
+)
+
 type Completer struct {
 	lastPartial string
 	tabPressCount int
@@ -22,10 +26,7 @@ func (c *Completer) Do(line []rune, pos int) ([][]rune, int) {
 	if len(words) == 0 {
 		return nil, 0
 	}
-	partial := ""
-	if len(words) > 0 {
-		partial = words[len(words)-1]
-	}
+	partial := words[len(words)-1]
 	completion := handlers.HandleAllCompletions(partial)
 	switch len(completion) {
 	case 0:
@@ -48,7 +49,7 @@ func (c *Completer) Do(line []rune, pos int) ([][]rune, int) {
 		if c.tabPressCount == 1 && c.lastPartial == partial {
 			sort.Strings(completion)
 			fmt.Printf("\n%s\n", strings.Join(completion, "  "))
-			fmt.Printf("$ %s", partial)
+			fmt.Printf("%s%s", shellPrompt, partial)
 			c.tabPressCount = 0
 			c.lastPartial = ""
 			return nil, 0
@@ -60,7 +61,7 @@ func (c *Completer) Do(line []rune, pos int) ([][]rune, int) {
 func main() {
 	completer := &Completer{}
 	rl, err := readline.NewEx(&readline.Config{
-		Prompt:       "$ ",
+		Prompt:       shellPrompt,
 		AutoComplete: completer,
 	})
 	if err != nil {

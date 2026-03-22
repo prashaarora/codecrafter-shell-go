@@ -40,17 +40,14 @@ func handlePathCompletions(partialString string) []string {
 		}
 		for _, entry := range entries {
 			name := entry.Name()
-			if !strings.HasPrefix(name, partialString) {
-				continue
-			}
-			if entry.IsDir() {
+			if !strings.HasPrefix(name, partialString) || entry.IsDir()  {
 				continue
 			}
 			info, err := entry.Info()
 			if err != nil {
 				continue
 			}
-			if info.Mode().Perm()&0111 != 0 {
+			if info.Mode().Perm()&0111 != 0 && !seen[name] {
 				seen[name] = true
 				completions = append(completions, name)	
 			}
