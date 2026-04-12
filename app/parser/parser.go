@@ -4,6 +4,7 @@ import (
 	"strings"
 )
 
+// CommandParser incrementally parses a shell command string into arguments.
 type CommandParser struct {
 	result              []string
 	currentArg          strings.Builder
@@ -12,6 +13,7 @@ type CommandParser struct {
 	inDoubleQuoteEscape bool
 }
 
+// NewCommandParser creates a parser instance with empty state.
 func NewCommandParser() *CommandParser {
 	return &CommandParser{
 		result:              make([]string, 0),
@@ -21,6 +23,7 @@ func NewCommandParser() *CommandParser {
 	}
 }
 
+// ParseCommand parses a command string into shell-style arguments.
 func ParseCommand(cmd string) []string {
 	p := NewCommandParser()
 	return p.Parse(cmd)
@@ -34,6 +37,7 @@ func (p *CommandParser) reset() {
 	p.inDoubleQuoteEscape = false
 }
 
+// Parse tokenizes cmd and returns the parsed arguments.
 func (p *CommandParser) Parse(cmd string) []string {
 	p.reset()
 	for _, c := range cmd {

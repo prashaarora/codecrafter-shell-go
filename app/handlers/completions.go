@@ -5,10 +5,11 @@ import (
 	"strings"
 )
 
+// HandleAllCompletions returns matching builtin and PATH executable completions.
 func HandleAllCompletions(partialString string) []string {
 	seen := make(map[string]bool)
 	var completions []string
-	
+
 	for cmd := range Builtins {
 		if strings.HasPrefix(cmd, partialString) {
 			seen[cmd] = true
@@ -33,14 +34,14 @@ func handlePathCompletions(partialString string) []string {
 	completions := []string{}
 	seen := make(map[string]bool)
 	pathDirs := getPathDirs()
-	for _, dir := range pathDirs{
+	for _, dir := range pathDirs {
 		entries, err := os.ReadDir(dir)
 		if err != nil {
 			continue
 		}
 		for _, entry := range entries {
 			name := entry.Name()
-			if !strings.HasPrefix(name, partialString) || entry.IsDir()  {
+			if !strings.HasPrefix(name, partialString) || entry.IsDir() {
 				continue
 			}
 			info, err := entry.Info()
@@ -49,25 +50,10 @@ func handlePathCompletions(partialString string) []string {
 			}
 			if info.Mode().Perm()&0111 != 0 && !seen[name] {
 				seen[name] = true
-				completions = append(completions, name)	
+				completions = append(completions, name)
 			}
 		}
 	}
 	return completions
 }
 
-func FindLongestCommonPrefix(matches []string) string {
-	if len(matches) == 0 {
-		return ""
-	}
-	lcp := matches[0]
-	for _, match := range matches[1:] {
-		for !strings.HasPrefix(match, lcp) {
-			lcp = lcp[:len(lcp)-1]
-			if lcp == "" {
-				return ""
-			}
-		}
-	}
-	return lcp
-}

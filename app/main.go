@@ -15,11 +15,29 @@ const (
 	shellPrompt = "$ "
 )
 
+// Completer implements readline tab-completion behavior for the shell.
 type Completer struct {
-	lastPartial string
+	lastPartial   string
 	tabPressCount int
 }
 
+func findLongestCommonPrefix(matches []string) string {
+	if len(matches) == 0 {
+		return ""
+	}
+	lcp := matches[0]
+	for _, match := range matches[1:] {
+		for !strings.HasPrefix(match, lcp) {
+			lcp = lcp[:len(lcp)-1]
+			if lcp == "" {
+				return ""
+			}
+		}
+	}
+	return lcp
+}
+
+// Do returns completion candidates and controls multi-tab completion output.
 func (c *Completer) Do(line []rune, pos int) ([][]rune, int) {
 	lineStr := string(line[:pos])
 	words := strings.Fields(lineStr)
@@ -40,7 +58,7 @@ func (c *Completer) Do(line []rune, pos int) ([][]rune, int) {
 		c.tabPressCount = 0
 		return [][]rune{[]rune(suffix + " ")}, len(partial)
 	default:
-		lcp := handlers.FindLongestCommonPrefix(completion)
+		lcp := findLongestCommonPrefix(completion)
 		if lcp > partial {
 			// complete to LCP
 			suffix := lcp[len(partial):]
@@ -65,7 +83,6 @@ func (c *Completer) Do(line []rune, pos int) ([][]rune, int) {
 	}
 	return nil, 0
 }
-
 
 func main() {
 	completer := &Completer{}
