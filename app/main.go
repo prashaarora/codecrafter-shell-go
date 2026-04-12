@@ -40,6 +40,14 @@ func (c *Completer) Do(line []rune, pos int) ([][]rune, int) {
 		c.tabPressCount = 0
 		return [][]rune{[]rune(suffix + " ")}, len(partial)
 	default:
+		lcp := handlers.FindLongestCommonPrefix(completion)
+		if lcp > partial {
+			// complete to LCP
+			suffix := lcp[len(partial):]
+			c.lastPartial = ""
+			c.tabPressCount = 0
+			return [][]rune{[]rune(suffix)}, len(partial)
+		}
 		if c.lastPartial != partial || c.tabPressCount == 0 {
 			fmt.Print("\a")
 			c.lastPartial = partial
@@ -57,6 +65,7 @@ func (c *Completer) Do(line []rune, pos int) ([][]rune, int) {
 	}
 	return nil, 0
 }
+
 
 func main() {
 	completer := &Completer{}

@@ -55,3 +55,19 @@ func handlePathCompletions(partialString string) []string {
 	}
 	return completions
 }
+
+func FindLongestCommonPrefix(matches []string) string {
+	if len(matches) == 0 {
+		return ""
+	}
+	lcp := matches[0]
+	for _, match := range matches[1:] {
+		for !strings.HasPrefix(match, lcp) {
+			lcp = lcp[:len(lcp)-1]
+			if lcp == "" {
+				return ""
+			}
+		}
+	}
+	return lcp
+}
